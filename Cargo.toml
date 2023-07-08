@@ -1,0 +1,37 @@
+[package]
+name = "basalytics"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+members = [".", "migration"]
+
+[dependencies]
+# Web server
+axum = { version = "0.6", features = ["http2"] }
+http = "*"
+headers = "*"
+# async
+tokio = { version = "1.29", features = ["full"] }
+# Database
+sea-orm = { version = "^0", features = [
+  "sqlx-postgres",
+  "sqlx-sqlite",
+  "runtime-tokio-rustls",
+  "macros",
+  "with-chrono",
+] }
+# Include the DB migrations
+migration = { path = "migration" }
+# Time
+chrono = "0.4"
+# Unique IDs that are sortable
+ulid = "1.0"
+# Error handling
+anyhow = "1.0"
+# Parsing user agents
+user-agent-parser = "0.3"
+# Store user agents parser (and anything else)
+lazy_static = "1.4"
+# 
+async-trait = "0.1"
