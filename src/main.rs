@@ -1,6 +1,7 @@
 mod entity;
+mod helpers;
+mod service;
 mod state;
-mod tracking;
 
 use axum::{http::header, routing::get, Router};
 use migration::{Migrator, MigratorTrait};
@@ -16,7 +17,7 @@ async fn main() {
 
     // build our application with a single route
     let app = Router::new()
-        .route("/t/t.png", get(tracking::tracking_pixel::tracking_pixel))
+        .route("/t/t.png", get(crate::service::t::t_png::get))
         .route(
             "/",
             get(|| async {

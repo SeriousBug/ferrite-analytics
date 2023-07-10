@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 
 use crate::state::AppState;
-use crate::tracking::helpers::EventHelper;
 
 use axum::http::{header, HeaderMap};
 use axum::response::IntoResponse;
 
-use super::helpers::UserAgent;
+use crate::helpers::{EventHelper, UserAgent};
 
-pub async fn tracking_pixel(headers: HeaderMap, state: AppState) -> impl IntoResponse {
+pub async fn get(headers: HeaderMap, state: AppState) -> impl IntoResponse {
     let user_agent_str = headers.get("user-agent").map(|v| v.to_str().unwrap());
     let user_agent = user_agent_str.map(|v| UserAgent::new(v));
 
@@ -33,6 +32,6 @@ pub async fn tracking_pixel(headers: HeaderMap, state: AppState) -> impl IntoRes
             (header::CACHE_CONTROL, "no-store"),
         ],
         // As small as an SVG image gets
-        include_bytes!("../../resources/tracking_pixel.png"),
+        include_bytes!("../../../resources/tracking_pixel.png"),
     )
 }

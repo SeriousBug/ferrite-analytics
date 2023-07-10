@@ -23,5 +23,5 @@ impl UserAgent {
 
 lazy_static! {
     static ref USER_AGENT_PARSER: UserAgentParser =
-        UserAgentParser::from_str(include_str!("../../../uap-core/regexes.yaml")).unwrap();
+        UserAgentParser::from_str(include_str!("../../uap-core/regexes.yaml")).unwrap();
 }
