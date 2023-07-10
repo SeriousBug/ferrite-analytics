@@ -7,7 +7,19 @@
       "label": "regenerate entities",
       "type": "shell",
       "command": "sea-orm-cli generate entity -o src/entity",
-      "problemMatcher": []
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/service"
+      }
+    },
+    {
+      "type": "cargo",
+      "command": "run",
+      "problemMatcher": ["$rustc", "$rust-panic"],
+      "label": "run service",
+      "options": {
+        "cwd": "${workspaceFolder}/service"
+      }
     }
   ]
 }
