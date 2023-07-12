@@ -41,11 +41,19 @@ const flush = () => {
   flushTimeout = undefined;
 };
 
+let sampleRate = 1;
+
 /** Send an event to be tracked.
  *
  * Events are not sent immediately, but are queued up and sent in batches.
  */
 const basalytics = (name: Event["name"], properties?: Event["properties"]) => {
+  if (Math.random() > sampleRate) {
+    // If `sampleRate` is 0.1, then Math.random() will be greater than 0.1 90%
+    // of the time, and thus 90% of the events will be dropped. 10% of the
+    // events will be sent.
+    return;
+  }
   queue.push({
     name,
     properties: {
@@ -86,14 +94,14 @@ const loadConfiguration = (configuration: Configuration) => {
       });
     });
   });
-  visibilityTrackers?.forEach(({ selector, name, percentVisible = 100 }) => {
+  visibilityTrackers?.forEach(({ selector, name, ratioVisible = 100 }) => {
     const observer = new IntersectionObserver(
       () => {
         basalytics(name ?? `${selector} view`);
       },
       {
         root: null /* browser viewport */,
-        threshold: percentVisible / 100,
+        threshold: ratioVisible,
       },
     );
     document.querySelectorAll(selector).forEach((element) => {
@@ -107,8 +115,9 @@ type Configuration = {
   visibilityTrackers?: {
     selector: string;
     name?: string;
-    percentVisible?: number;
+    ratioVisible?: number;
   }[];
+  sampleRate?: number;
 };
 
 const log = {
