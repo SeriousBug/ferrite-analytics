@@ -18,13 +18,14 @@ async fn main() {
     // build our application with a single route
     let app = Router::new()
         .route("/t/t.png", get(crate::service::t::t_png::get))
+        .route("/r/script.js", get(crate::service::r::script_js::get))
         .route(
             "/",
             get(|| async {
                 // Placeholder page for testing
                 (
                     [(header::CONTENT_TYPE, "html")],
-                    "<!DOCTYPE html><html><body><img src=\"/t/t.png\" /></body></html>",
+                    "<!DOCTYPE html><html><body><img src=\"/t/t.png\" /><div id=\"foo\">button</div><script src=\"/r/script.js\">{\"eventTrackers\": [{\"selector\": \"#foo\", \"event\": \"onclick\"}], \"visibilityTrackers\": [{\"selector\": \"#foo\"}]}</script></body></html>",
                 )
             }),
         )

@@ -17,6 +17,7 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+
         // The properties table stores the actual data attached to the events.
         manager
             .create_table(
@@ -26,6 +27,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Property::EventKey).string().not_null())
                     .col(ColumnDef::new(Property::Name).string().not_null())
                     .col(ColumnDef::new(Property::Value).string().not_null())
+                    .col(ColumnDef::new(Property::ValueType).integer().not_null())
                     .primary_key(Index::create().col(Property::EventKey).col(Property::Name))
                     .foreign_key(
                         ForeignKey::create()
@@ -66,4 +68,5 @@ pub enum Property {
     EventKey,
     Name,
     Value,
+    ValueType,
 }
