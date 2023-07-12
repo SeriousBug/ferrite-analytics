@@ -20,6 +20,14 @@
       "options": {
         "cwd": "${workspaceFolder}/service"
       }
+    },
+    {
+      "type": "npm",
+      "script": "dev",
+      "path": "dashboard",
+      "problemMatcher": [],
+      "label": "run dashboard",
+      "detail": "next dev"
     }
   ]
 }
