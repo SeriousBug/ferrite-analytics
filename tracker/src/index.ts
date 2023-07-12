@@ -82,14 +82,14 @@ const loadConfiguration = (configuration: Configuration) => {
   eventTrackers?.forEach(({ selector, event, name }) => {
     document.querySelectorAll(selector).forEach((element) => {
       element.addEventListener(event, () => {
-        basalytics(name ?? selector);
+        basalytics(name ?? `${selector} ${event}`);
       });
     });
   });
   visibilityTrackers?.forEach(({ selector, name, percentVisible = 100 }) => {
     const observer = new IntersectionObserver(
       () => {
-        basalytics(name ?? selector);
+        basalytics(name ?? `${selector} view`);
       },
       {
         root: null /* browser viewport */,

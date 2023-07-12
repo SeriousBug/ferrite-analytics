@@ -27,7 +27,7 @@ async fn main() {
                 // Placeholder page for testing
                 (
                     [(header::CONTENT_TYPE, "html")],
-                    "<!DOCTYPE html><html><body><img src=\"/t/t.png\" /><div id=\"foo\">button</div><script src=\"/r/script.js\">{\"eventTrackers\": [{\"selector\": \"#foo\", \"event\": \"onclick\"}], \"visibilityTrackers\": [{\"selector\": \"#foo\"}]}</script></body></html>",
+                    "<!DOCTYPE html><html><body><img src=\"/t/t.png\" /><div id=\"foo\">button</div><script src=\"/r/script.js\">{\"eventTrackers\": [{\"selector\": \"#foo\", \"event\": \"click\"}], \"visibilityTrackers\": [{\"selector\": \"#foo\"}]}</script></body></html>",
                 )
             }),
         )
