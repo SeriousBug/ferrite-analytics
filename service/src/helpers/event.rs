@@ -11,7 +11,6 @@ pub enum EventDataTypes {
     Number = 1,
     Boolean = 2,
     Null = 3,
-    Undefined = 4,
 }
 
 #[async_trait::async_trait]

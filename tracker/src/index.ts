@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import { z } from "zod";
 
 /** A temporary, random ID to identify a single user session.
  *
@@ -8,15 +7,16 @@ import { z } from "zod";
  *
  * It's also per-website, so it can't track users across websites.
  */
-let sessionId = window.sessionStorage.getItem("basalytics-session-id");
+const BASALYTICS_SESSION_STORAGE_KEY = "basalytics-session-id";
+let sessionId = window.sessionStorage.getItem(BASALYTICS_SESSION_STORAGE_KEY);
 if (sessionId === null) {
   sessionId = nanoid();
-  window.sessionStorage.setItem("basalytics-session-id", sessionId);
+  window.sessionStorage.setItem(BASALYTICS_SESSION_STORAGE_KEY, sessionId);
 }
 
 type Event = {
   name: string;
-  properties: Record<string, string | number | boolean | undefined | null>;
+  properties: Record<string, string | number | boolean | null>;
 };
 let queue: Event[] = [];
 let flushTimeout: number | undefined;
@@ -32,6 +32,9 @@ const flush = () => {
   fetch("http://localhost:3000/t/event", {
     method: "POST",
     body: JSON.stringify(queue),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
   queue = [];
   clearTimeout(flushTimeout);
@@ -108,6 +111,12 @@ type Configuration = {
   }[];
 };
 
+const log = {
+  error: (message: string, ...rest: unknown[]) => {
+    console.error(`basalytics: ${message}`, ...rest);
+  },
+};
+
 // Load the configuration from the script element, and load it.
 //
 // By loading the configuration from the script element, we can avoid having to
@@ -115,7 +124,7 @@ type Configuration = {
 // on load.
 const scriptElement = document.currentScript;
 if (scriptElement === null) {
-  console.error("basalytics: script element not found");
+  log.error("script element not found");
 } else {
   try {
     const configuration = scriptElement.innerHTML;
@@ -123,6 +132,6 @@ if (scriptElement === null) {
       loadConfiguration(JSON.parse(configuration));
     }
   } catch (error) {
-    console.error("basalytics: error loading configuration", error);
+    log.error("failed to load configuration", error);
   }
 }

@@ -3,6 +3,7 @@ mod helpers;
 mod service;
 mod state;
 
+use axum::routing::post;
 use axum::{http::header, routing::get, Router};
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
@@ -18,6 +19,7 @@ async fn main() {
     // build our application with a single route
     let app = Router::new()
         .route("/t/t.png", get(crate::service::t::t_png::get))
+        .route("/t/event", post(crate::service::t::event::post))
         .route("/r/script.js", get(crate::service::r::script_js::get))
         .route(
             "/",
