@@ -8,11 +8,7 @@ import { nanoid } from "nanoid";
  * It's also per-website, so it can't track users across websites.
  */
 const BASALYTICS_SESSION_STORAGE_KEY = "basalytics-session-id";
-let sessionId = window.sessionStorage.getItem(BASALYTICS_SESSION_STORAGE_KEY);
-if (sessionId === null) {
-  sessionId = nanoid();
-  window.sessionStorage.setItem(BASALYTICS_SESSION_STORAGE_KEY, sessionId);
-}
+let sessionId: string | undefined;
 
 type Event = {
   name: string;
@@ -54,12 +50,13 @@ const basalytics = (name: Event["name"], properties?: Event["properties"]) => {
     // events will be sent.
     return;
   }
+  let props = properties ?? {};
+  if (sessionId) {
+    props = { ...props, sessionId };
+  }
   queue.push({
     name,
-    properties: {
-      sessionId,
-      ...properties,
-    },
+    properties: props,
   });
 
   if (queue.length >= QUEUE_FLUSH_LIMIT) {
@@ -86,6 +83,19 @@ window.addEventListener("load", () => {
 /** Load the provided configuration, setting up event listeners. */
 const loadConfiguration = (configuration: Configuration) => {
   const { eventTrackers, visibilityTrackers } = configuration;
+
+  // We use a session ID, which is cleared when the website is closed, to track
+  // user sessions. I don't think this counts as "data stored on users devices"
+  // for ePrivacy Directive purposes, but we can let website owners decide that.
+  if (configuration.trackSessions) {
+    sessionId =
+      window.sessionStorage.getItem(BASALYTICS_SESSION_STORAGE_KEY) ??
+      undefined;
+    if (sessionId === undefined) {
+      sessionId = nanoid();
+      window.sessionStorage.setItem(BASALYTICS_SESSION_STORAGE_KEY, sessionId);
+    }
+  }
 
   eventTrackers?.forEach(({ selector, event, name }) => {
     document.querySelectorAll(selector).forEach((element) => {
@@ -118,6 +128,7 @@ type Configuration = {
     ratioVisible?: number;
   }[];
   sampleRate?: number;
+  trackSessions?: boolean;
 };
 
 const log = {
