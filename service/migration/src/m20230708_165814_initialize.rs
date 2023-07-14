@@ -41,10 +41,120 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Account::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Account::Id)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(Account::Username)
+                            .string()
+                            .not_null()
+                            .unique_key(),
+                    )
+                    .col(ColumnDef::new(Account::HashedPassword).string().not_null())
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("ux_account_username")
+                    .table(Account::Table)
+                    .col(Account::Username)
+                    .unique()
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Dashboard::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Dashboard::Id)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Dashboard::Name).string().not_null())
+                    .col(ColumnDef::new(Dashboard::Description).string().not_null())
+                    .col(ColumnDef::new(Dashboard::Configuration).string().not_null())
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(Tracker::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Tracker::Id)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Tracker::Configuration).string().not_null())
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(TrackingPixel::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(TrackingPixel::Id)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(TrackingPixel::EventName).string().not_null())
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_index(
+                Index::drop()
+                    .name("ux_account_username")
+                    .table(Account::Table)
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Dashboard::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Tracker::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(TrackingPixel::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Account::Table).to_owned())
+            .await?;
         manager
             .drop_table(Table::drop().table(Property::Table).to_owned())
             .await?;
@@ -69,4 +179,35 @@ pub enum Property {
     Name,
     Value,
     ValueType,
+}
+
+#[derive(Iden)]
+pub enum Account {
+    Table,
+    Id,
+    Username,
+    HashedPassword,
+}
+
+#[derive(Iden)]
+pub enum Dashboard {
+    Table,
+    Id,
+    Name,
+    Description,
+    Configuration,
+}
+
+#[derive(Iden)]
+pub enum Tracker {
+    Table,
+    Id,
+    Configuration,
+}
+
+#[derive(Iden)]
+pub enum TrackingPixel {
+    Table,
+    Id,
+    EventName,
 }
