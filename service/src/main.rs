@@ -1,3 +1,4 @@
+pub mod cli;
 mod entity;
 mod helpers;
 mod service;
@@ -5,12 +6,18 @@ mod state;
 
 use axum::routing::post;
 use axum::{http::header, routing::get, Router};
+use clap::Parser;
+use cli::run_command::RunCommand;
+use cli::Cli;
 use state::get_db;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
+    let cli = Cli::parse();
+    cli.run().await.unwrap();
+
     let state = Arc::new(state::AppStateData {
         db: get_db().await.unwrap(),
     });
