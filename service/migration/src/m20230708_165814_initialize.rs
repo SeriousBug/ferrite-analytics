@@ -131,6 +131,18 @@ impl MigrationTrait for Migration {
             .await
             .unwrap();
 
+        manager
+            .create_table(
+                Table::create()
+                    .table(Meta::Table)
+                    .if_not_exists()
+                    .col(ColumnDef::new(Meta::Key).string().not_null().primary_key())
+                    .col(ColumnDef::new(Meta::Value).string().not_null())
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
         Ok(())
     }
 
@@ -160,6 +172,9 @@ impl MigrationTrait for Migration {
             .await?;
         manager
             .drop_table(Table::drop().table(Event::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(Meta::Table).to_owned())
             .await?;
         Ok(())
     }
@@ -210,4 +225,11 @@ pub enum TrackingPixel {
     Table,
     Id,
     EventName,
+}
+
+#[derive(Iden)]
+pub enum Meta {
+    Table,
+    Key,
+    Value,
 }

@@ -5,6 +5,7 @@ pub mod prelude;
 pub mod account;
 pub mod dashboard;
 pub mod event;
+pub mod meta;
 pub mod property;
 pub mod tracker;
 pub mod tracking_pixel;

@@ -3,6 +3,7 @@
 pub use super::account::Entity as Account;
 pub use super::dashboard::Entity as Dashboard;
 pub use super::event::Entity as Event;
+pub use super::meta::Entity as Meta;
 pub use super::property::Entity as Property;
 pub use super::tracker::Entity as Tracker;
 pub use super::tracking_pixel::Entity as TrackingPixel;
