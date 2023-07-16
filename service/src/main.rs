@@ -1,6 +1,7 @@
 pub mod cli;
 mod entity;
 mod helpers;
+pub mod middleware;
 mod service;
 mod state;
 
@@ -28,6 +29,7 @@ async fn main() {
         .route("/t/event", post(crate::service::t::event::post))
         .route("/r/script.js", get(crate::service::r::script_js::get))
         .route("/api/auth/login", post(crate::service::api::auth::login::post))
+        .route("/api/auth/me", get(crate::service::api::auth::me::get))
         .route(
             "/",
             get(|| async {

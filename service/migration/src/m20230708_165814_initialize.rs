@@ -143,6 +143,36 @@ impl MigrationTrait for Migration {
             .await
             .unwrap();
 
+        manager
+            .create_table(
+                Table::create()
+                    .table(TokenInvalidation::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(TokenInvalidation::AccountId)
+                            .string()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(
+                        ColumnDef::new(TokenInvalidation::InvalidatedAt)
+                            .date_time()
+                            .not_null(),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from_tbl(TokenInvalidation::Table)
+                            .from_col(TokenInvalidation::AccountId)
+                            .to_tbl(Account::Table)
+                            .to_col(Account::Id)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
         Ok(())
     }
 
@@ -176,6 +206,10 @@ impl MigrationTrait for Migration {
         manager
             .drop_table(Table::drop().table(Meta::Table).to_owned())
             .await?;
+        manager
+            .drop_table(Table::drop().table(TokenInvalidation::Table).to_owned())
+            .await?;
+
         Ok(())
     }
 }
@@ -232,4 +266,11 @@ pub enum Meta {
     Table,
     Key,
     Value,
+}
+
+#[derive(Iden)]
+pub enum TokenInvalidation {
+    Table,
+    AccountId,
+    InvalidatedAt,
 }
