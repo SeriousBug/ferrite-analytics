@@ -7,6 +7,7 @@ use tokio::sync::Mutex;
 
 pub struct AppStateData {
     pub db: DatabaseConnection,
+    pub forwarded_ip_header: Option<String>,
 }
 
 pub type AppState = State<Arc<AppStateData>>;

@@ -11,7 +11,7 @@ pub struct AccountDelete {
 
 #[async_trait::async_trait]
 impl RunCommand for AccountDelete {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         let db = crate::state::get_db().await?;
         let account = account::Entity::find()
             .filter(Condition::all().add(account::Column::Username.eq(&self.name)))

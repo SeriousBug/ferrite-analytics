@@ -18,7 +18,7 @@ pub enum AccountCommands {
 
 #[async_trait]
 impl RunCommand for AccountCommands {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         match self {
             Self::Create(cmd) => cmd.run().await,
             Self::Delete(cmd) => cmd.run().await,
@@ -35,7 +35,7 @@ pub struct Account {
 
 #[async_trait]
 impl RunCommand for Account {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         self.command.run().await
     }
 }

@@ -10,7 +10,7 @@ pub struct AccountList {}
 
 #[async_trait::async_trait]
 impl RunCommand for AccountList {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         let db = crate::state::get_db().await?;
 
         let mut accounts = account::Entity::find().stream(&db).await?;

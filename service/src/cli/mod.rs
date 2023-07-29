@@ -12,12 +12,14 @@ use self::{account::Account, run_command::RunCommand};
 pub struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
+    #[arg(short, long)]
+    pub forward_ip_header: Option<String>,
 }
 
 #[async_trait::async_trait]
 impl RunCommand for Cli {
-    async fn run(self) -> anyhow::Result<()> {
-        if let Some(command) = self.command {
+    async fn run(&self) -> anyhow::Result<()> {
+        if let Some(command) = &self.command {
             command.run().await?;
             exit(0);
         } else {
@@ -33,7 +35,7 @@ pub enum Commands {
 
 #[async_trait::async_trait]
 impl RunCommand for Commands {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         match self {
             Commands::Account(account) => account.run().await,
         }
