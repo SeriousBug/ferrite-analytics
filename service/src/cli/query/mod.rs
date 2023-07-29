@@ -1,7 +1,7 @@
 use clap::Args;
 use futures::StreamExt;
 use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
-use sea_query::{Expr, Query};
+use sea_query::{Expr, IntoCondition, Query};
 use serde::{Deserialize, Serialize};
 
 use crate::cli::run_command::RunCommand;
@@ -15,16 +15,45 @@ struct QueryData {
     filter: Filter,
 }
 
-//#[derive(Debug, Serialize, Deserialize)]
-//enum Filter {
-//    //FilterAnd(Vec<Filter>),
-//    //FilterOr(Vec<Filter>),
-//    FilterValue { name: String, eq: String },
-//}
 #[derive(Debug, Serialize, Deserialize)]
-struct Filter {
-    name: String,
-    eq: String,
+enum Filter {
+    #[serde(rename = "and")]
+    FilterAnd(Vec<Filter>),
+    #[serde(rename = "or")]
+    FilterOr(Vec<Filter>),
+    #[serde(rename = "filter")]
+    FilterValue { name: String, eq: String },
+}
+
+impl Filter {
+    fn to_query(&self) -> Condition {
+        match self {
+            Filter::FilterAnd(filters) => {
+                let mut cond = Condition::all();
+                for filter in filters {
+                    cond = cond.add(filter.to_query());
+                }
+                cond
+            }
+            Filter::FilterOr(filters) => {
+                let mut cond = Condition::any();
+                for filter in filters {
+                    cond = cond.add(filter.to_query());
+                }
+                cond
+            }
+            Filter::FilterValue { name, eq } => event::Column::Key
+                .in_subquery(
+                    Query::select()
+                        .column(property::Column::EventKey)
+                        .from(property::Entity)
+                        .and_where(Expr::col(property::Column::Name).eq(name))
+                        .and_where(Expr::col(property::Column::Value).eq(eq))
+                        .to_owned(),
+                )
+                .into_condition(),
+        }
+    }
 }
 
 #[derive(Debug, Args)]
@@ -45,22 +74,8 @@ impl RunCommand for QueryCommand {
                 .and(event::Column::Date.lt(&self.to_date)),
         );
         if let Some(filter_json) = &self.filter {
-            let filters = serde_json::from_str::<Vec<Filter>>(filter_json)?;
-
-            for filter in filters {
-                query = query.filter(
-                    Condition::any().add(
-                        event::Column::Key.in_subquery(
-                            Query::select()
-                                .column(property::Column::EventKey)
-                                .from(property::Entity)
-                                .and_where(Expr::col(property::Column::Name).eq(filter.name))
-                                .and_where(Expr::col(property::Column::Value).eq(filter.eq))
-                                .to_owned(),
-                        ),
-                    ),
-                );
-            }
+            let filters = serde_json::from_str::<Filter>(filter_json)?;
+            query = query.filter(filters.to_query());
         }
 
         let mut events = query.stream(&db).await.unwrap();
