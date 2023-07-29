@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::entity;
 use crate::helpers::event::EventDataTypes;
 use crate::state::AppState;
+use crate::{entity, helpers::session_id::SessionId};
 
 use axum::Json;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
@@ -15,15 +15,14 @@ pub struct Event {
     properties: HashMap<String, serde_json::Value>,
 }
 
-pub async fn post(state: AppState, Json(events): Json<Vec<Event>>) {
+pub async fn post(session_id: SessionId, state: AppState, Json(events): Json<Vec<Event>>) {
     // Save the event data
     for event in events {
-        save_event(event, state.db.clone()).await;
+        save_event(event, state.db.clone(), &session_id).await;
     }
 }
 
-async fn save_event(event: Event, db: DatabaseConnection) {
-    //
+async fn save_event(event: Event, db: DatabaseConnection, SessionId(session_id): &SessionId) {
     let txn = db.begin().await.unwrap();
     let event_model = entity::event::ActiveModel {
         key: Set(ulid::Ulid::new().to_string()),
@@ -48,6 +47,17 @@ async fn save_event(event: Event, db: DatabaseConnection) {
             .unwrap();
         }
     }
+
+    entity::property::ActiveModel {
+        event_key: Set(event_model.key.to_owned()),
+        name: Set("session".to_string()),
+        value: Set(session_id.to_string()),
+        value_type: Set(EventDataTypes::String as i32),
+        ..Default::default()
+    }
+    .insert(&txn)
+    .await
+    .unwrap();
 
     txn.commit().await.unwrap();
 }

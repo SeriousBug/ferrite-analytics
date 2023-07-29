@@ -13,11 +13,11 @@ pub struct AccountCreate {
 
 #[async_trait::async_trait]
 impl RunCommand for AccountCreate {
-    async fn run(self) -> anyhow::Result<()> {
+    async fn run(&self) -> anyhow::Result<()> {
         let hash = generate_hash(&self.password);
         let account = account::ActiveModel {
             id: Set(ulid::Ulid::new().to_string()),
-            username: Set(self.name),
+            username: Set(self.name.clone()),
             hashed_password: Set(hash),
         }
         .insert(&crate::state::get_db().await?)

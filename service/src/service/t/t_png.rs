@@ -1,13 +1,17 @@
 use std::collections::HashMap;
 
+use crate::helpers::session_id::SessionId;
+use crate::helpers::{EventHelper, UserAgent};
 use crate::state::AppState;
 
 use axum::http::{header, HeaderMap};
 use axum::response::IntoResponse;
 
-use crate::helpers::{EventHelper, UserAgent};
-
-pub async fn get(headers: HeaderMap, state: AppState) -> impl IntoResponse {
+pub async fn get(
+    SessionId(session_id): SessionId,
+    headers: HeaderMap,
+    state: AppState,
+) -> impl IntoResponse {
     let user_agent_str = headers.get("user-agent").map(|v| v.to_str().unwrap());
     let user_agent = user_agent_str.map(|v| UserAgent::new(v));
 
@@ -20,6 +24,7 @@ pub async fn get(headers: HeaderMap, state: AppState) -> impl IntoResponse {
             properties.insert("browser", browser);
         }
     }
+    properties.insert("session", session_id);
 
     state.save_event("tracking-pixel", properties).await;
 

@@ -21,6 +21,7 @@ async fn main() {
 
     let state = Arc::new(state::AppStateData {
         db: get_db().await.unwrap(),
+        forwarded_ip_header: cli.forward_ip_header.to_owned(),
     });
 
     // build our application with a single route
