@@ -65,10 +65,12 @@ impl RunCommand for QueryCommand {
 
         let mut events = query.stream(&db).await.unwrap();
 
-        println!("Events:");
+        println!("key,date");
         while let Some(event) = events.next().await {
-            println!("{:?}", event);
+            let event = event.unwrap();
+            println!("{},{}", event.key, event.date);
         }
+
         Ok(())
     }
 }
