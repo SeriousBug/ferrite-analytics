@@ -1,6 +1,7 @@
 use clap::Args;
 use futures::StreamExt;
-use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_query::{Expr, Query};
 use serde::{Deserialize, Serialize};
 
 use crate::cli::run_command::RunCommand;
@@ -8,7 +9,7 @@ use crate::entity::{event, property};
 use crate::state::get_db;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Query {
+struct QueryData {
     from_date: String,
     to_date: String,
     filter: Filter,
@@ -32,17 +33,28 @@ impl RunCommand for QueryCommand {
     async fn run(&self) -> anyhow::Result<()> {
         let db = get_db().await?;
         let mut events = event::Entity::find()
-            .find_with_related(property::Entity)
             .filter(
                 event::Column::Date
-                    .gt(self.from_date)
-                    .and(event::Column::Date.lt(self.to_date))
-                    .and(property::Column::Name.eq("name")),
+                    .gt(&self.from_date)
+                    .and(event::Column::Date.lt(&self.to_date)),
+            )
+            .filter(
+                Condition::any().add(
+                    event::Column::Key.in_subquery(
+                        Query::select()
+                            .column(property::Column::EventKey)
+                            .from(property::Entity)
+                            .and_where(Expr::col(property::Column::Name).eq("name"))
+                            .and_where(Expr::col(property::Column::Value).eq("tracking-pixel"))
+                            .to_owned(),
+                    ),
+                ),
             )
             .stream(&db)
             .await
             .unwrap();
 
+        println!("Events:");
         while let Some(event) = events.next().await {
             println!("{:?}", event);
         }

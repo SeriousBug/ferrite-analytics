@@ -43,6 +43,20 @@ impl MigrationTrait for Migration {
             .await?;
 
         manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("ux_name_value")
+                    .table(Property::Table)
+                    .col(Property::Name)
+                    .col(Property::Value)
+                    .unique()
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
             .create_table(
                 Table::create()
                     .table(Account::Table)

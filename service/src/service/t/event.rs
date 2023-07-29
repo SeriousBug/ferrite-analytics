@@ -33,6 +33,17 @@ async fn save_event(event: Event, db: DatabaseConnection, SessionId(session_id):
     .await
     .unwrap();
 
+    entity::property::ActiveModel {
+        event_key: Set(event_model.key.to_owned()),
+        name: Set("name".to_string()),
+        value: Set(event.name.to_string()),
+        value_type: Set(EventDataTypes::String as i32),
+        ..Default::default()
+    }
+    .insert(&txn)
+    .await
+    .unwrap();
+
     for (name, value) in event.properties {
         if let Some(value_type) = get_value_type(&value) {
             entity::property::ActiveModel {
