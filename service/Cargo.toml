@@ -22,6 +22,7 @@ sea-orm = { version = "^0", features = [
   "macros",
   "with-chrono",
 ] }
+sea-query = "0"
 # Include the DB migrations
 migration = { path = "migration" }
 # Time

@@ -305,6 +305,7 @@ dependencies = [
  "migration",
  "password-auth",
  "sea-orm",
+ "sea-query",
  "serde",
  "serde_json",
  "sha2",
