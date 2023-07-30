@@ -1,4 +1,5 @@
 pub mod account;
+pub mod benchmark;
 pub mod query;
 pub mod run_command;
 
@@ -6,7 +7,9 @@ use std::process::exit;
 
 use clap::{Parser, Subcommand};
 
-use self::{account::Account, query::QueryCommand, run_command::RunCommand};
+use self::{
+    account::Account, benchmark::BenchmarkCommand, query::QueryCommand, run_command::RunCommand,
+};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -33,6 +36,7 @@ impl RunCommand for Cli {
 pub enum Commands {
     Account(Account),
     Query(QueryCommand),
+    Benchmark(BenchmarkCommand),
 }
 
 #[async_trait::async_trait]
@@ -41,6 +45,7 @@ impl RunCommand for Commands {
         match self {
             Commands::Account(account) => account.run().await,
             Commands::Query(query) => query.run().await,
+            Commands::Benchmark(benchmark) => benchmark.run().await,
         }
     }
 }

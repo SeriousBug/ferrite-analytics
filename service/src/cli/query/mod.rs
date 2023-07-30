@@ -1,6 +1,7 @@
 use clap::Args;
+use futures::stream::BoxStream;
 use futures::StreamExt;
-use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
 use sea_query::{Expr, IntoCondition, Query};
 use serde::{Deserialize, Serialize};
 
@@ -9,14 +10,14 @@ use crate::entity::{event, property};
 use crate::state::get_db;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct QueryData {
-    from_date: String,
-    to_date: String,
-    filter: Filter,
+pub struct QueryData {
+    pub from_date: String,
+    pub to_date: String,
+    pub filter: Filter,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-enum Filter {
+pub enum Filter {
     #[serde(rename = "and")]
     FilterAnd(Vec<Filter>),
     #[serde(rename = "or")]
@@ -63,22 +64,35 @@ pub struct QueryCommand {
     filter: Option<String>,
 }
 
+pub async fn run_query<'a>(
+    db: &'a DatabaseConnection,
+    data: QueryData,
+) -> BoxStream<'a, Result<event::Model, DbErr>> {
+    let mut query = event::Entity::find().filter(
+        event::Column::Date
+            .gte(&data.from_date)
+            .and(event::Column::Date.lte(&data.to_date)),
+    );
+    query = query.filter(data.filter.to_query());
+
+    query.stream(db).await.unwrap().boxed()
+}
+
 #[async_trait::async_trait]
 impl RunCommand for QueryCommand {
     async fn run(&self) -> anyhow::Result<()> {
         let db = get_db().await?;
 
-        let mut query = event::Entity::find().filter(
-            event::Column::Date
-                .gt(&self.from_date)
-                .and(event::Column::Date.lt(&self.to_date)),
-        );
-        if let Some(filter_json) = &self.filter {
-            let filters = serde_json::from_str::<Filter>(filter_json)?;
-            query = query.filter(filters.to_query());
-        }
-
-        let mut events = query.stream(&db).await.unwrap();
+        let query_data = QueryData {
+            from_date: self.from_date.clone(),
+            to_date: self.to_date.clone(),
+            filter: if let Some(filter_json) = &self.filter {
+                serde_json::from_str(filter_json)?
+            } else {
+                Filter::FilterAnd(vec![])
+            },
+        };
+        let mut events = run_query(&db, query_data).await;
 
         println!("key,date");
         while let Some(event) = events.next().await {

@@ -1,7 +1,7 @@
 use axum::extract::State;
 use lazy_static::lazy_static;
 use migration::{Migrator, MigratorTrait};
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectionTrait, Database, DatabaseConnection};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -16,7 +16,20 @@ pub async fn get_db() -> anyhow::Result<DatabaseConnection> {
     // Not sure if this is strictly required, but we'll use a lock to ensure
     // that we don't try to run migrations in parallel.
     let lock = MIGRATION_LOCK.lock().await;
-    let db: DatabaseConnection = Database::connect("sqlite://test.sqlite?mode=rwc").await?;
+    let db: DatabaseConnection = Database::connect("sqlite:///tmp/test.sqlite?mode=rwc").await?;
+
+    let backend = db.get_database_backend();
+    if backend.eq(&sea_orm::DatabaseBackend::Sqlite) {
+        println!("Running SQLite specific optimizations");
+        // synchronous=NORMAL reduces how often Sqlite flushes to disk,
+        // journal_mode=WAL is required to make prevent corruption in this mode.
+        db.execute_unprepared("PRAGMA journal_mode=WAL;").await?;
+        db.execute_unprepared("PRAGMA synchronous=NORMAL;").await?;
+        // This improves performance, because we don't really care if a query
+        // reads an uncommitted event. (Does it?)
+        //db.execute_unprepared("PRAGMA read_uncommitted=ON;").await?;
+    }
+
     Migrator::up(&db, None).await?;
     drop(lock);
     Ok(db)

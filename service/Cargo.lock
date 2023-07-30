@@ -304,6 +304,7 @@ dependencies = [
  "lazy_static",
  "migration",
  "password-auth",
+ "rand",
  "sea-orm",
  "sea-query",
  "serde",

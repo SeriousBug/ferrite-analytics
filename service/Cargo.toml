@@ -49,3 +49,5 @@ clap = { version = "4.3.12", features = ["derive"] }
 sha2 = "0.10"
 base64 = "0.21"
 getrandom = "0.2"
+# Benchmark
+rand = { version = "0.8", features = ["small_rng"] }
