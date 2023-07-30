@@ -50,7 +50,6 @@ impl MigrationTrait for Migration {
                     .table(Property::Table)
                     .col(Property::Name)
                     .col(Property::Value)
-                    .unique()
                     .to_owned(),
             )
             .await
