@@ -1,7 +1,9 @@
 use clap::Args;
 use futures::stream::BoxStream;
 use futures::StreamExt;
-use sea_orm::{ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait, QueryFilter};
+use sea_orm::{
+    ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait, PaginatorTrait, QueryFilter,
+};
 use sea_query::{Expr, IntoCondition, Query};
 use serde::{Deserialize, Serialize};
 
@@ -64,10 +66,7 @@ pub struct QueryCommand {
     filter: Option<String>,
 }
 
-pub async fn run_query<'a>(
-    db: &'a DatabaseConnection,
-    data: QueryData,
-) -> BoxStream<'a, Result<event::Model, DbErr>> {
+pub async fn run_query<'a>(db: &'a DatabaseConnection, data: QueryData) -> u64 {
     let mut query = event::Entity::find().filter(
         event::Column::Date
             .gte(&data.from_date)
@@ -75,7 +74,7 @@ pub async fn run_query<'a>(
     );
     query = query.filter(data.filter.to_query());
 
-    query.stream(db).await.unwrap().boxed()
+    query.count(db).await.unwrap()
 }
 
 #[async_trait::async_trait]
@@ -92,13 +91,9 @@ impl RunCommand for QueryCommand {
                 Filter::FilterAnd(vec![])
             },
         };
-        let mut events = run_query(&db, query_data).await;
+        let events = run_query(&db, query_data).await;
 
-        println!("key,date");
-        while let Some(event) = events.next().await {
-            let event = event.unwrap();
-            println!("{},{}", event.key, event.date);
-        }
+        println!("Found {} events", events);
 
         Ok(())
     }

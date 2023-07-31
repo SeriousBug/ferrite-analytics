@@ -89,21 +89,18 @@ impl RunCommand for BenchmarkCommand {
                     eq: possible_names.choose(&mut rng).unwrap().clone(),
                 },
             };
-            let mut events = run_query(&db, query_data).await;
 
             let start = chrono::Utc::now();
-            let mut count: usize = 0;
-            while let Some(event) = events.next().await {
-                event.unwrap();
-                count += 1;
-            }
+
+            let events = run_query(&db, query_data).await;
+
             let end = chrono::Utc::now();
             let duration = end - start;
             println!(
                 "Query {} took {}ms, {} events",
                 i,
                 duration.num_milliseconds(),
-                count
+                events
             );
         }
         let all_queries_end = chrono::Utc::now();
