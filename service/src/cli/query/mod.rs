@@ -1,6 +1,5 @@
 use clap::Args;
-use futures::StreamExt;
-use sea_orm::{ColumnTrait, Condition, EntityTrait, QueryFilter};
+use sea_orm::{ColumnTrait, Condition, EntityTrait, PaginatorTrait, QueryFilter};
 use sea_query::{Expr, IntoCondition, Query};
 use serde::{Deserialize, Serialize};
 
@@ -78,13 +77,8 @@ impl RunCommand for QueryCommand {
             query = query.filter(filters.to_query());
         }
 
-        let mut events = query.stream(&db).await.unwrap();
-
-        println!("key,date");
-        while let Some(event) = events.next().await {
-            let event = event.unwrap();
-            println!("{},{}", event.key, event.date);
-        }
+        let events = query.count(&db).await.unwrap();
+        println!("{:}", events);
 
         Ok(())
     }
