@@ -31,6 +31,7 @@ async fn main() {
         .route("/r/script.js", get(crate::service::r::script_js::get))
         .route("/api/auth/login", post(crate::service::api::auth::login::post))
         .route("/api/auth/me", get(crate::service::api::auth::me::get))
+        .route("/api/query/filter", get(crate::service::api::query::filter::get))
         .route(
             "/",
             get(|| async {
