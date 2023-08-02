@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
-import { PiLightbulbFill } from "react-icons/pi";
+import { PiLightbulbBold } from "react-icons/pi";
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(false);
@@ -15,7 +15,7 @@ export function ThemeToggle() {
 
   return (
     <div className="btn btn-ghost text-xl" onClick={toggleTheme}>
-      <PiLightbulbFill />
+      <PiLightbulbBold />
     </div>
   );
 }
