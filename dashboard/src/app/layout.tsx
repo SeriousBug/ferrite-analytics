@@ -3,8 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
-import { useCallback, useState } from "react";
-import { PiLightbulbFill, PiLightbulbLight } from "react-icons/pi";
+import { LoginButton } from "@/components/login-button";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,9 +30,7 @@ export default function RootLayout({
           </div>
           <div className="navbar-end flex flex-row gap-2">
             <ThemeToggle />
-            <Link className="btn btn-primary" href="/login">
-              Log in
-            </Link>
+            <LoginButton />
           </div>
         </header>
         <main className="grow mx-4">{children}</main>
