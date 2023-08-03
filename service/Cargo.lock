@@ -286,36 +286,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "basalytics"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "async_once",
- "axum",
- "base64 0.21.2",
- "chrono",
- "clap 4.3.12",
- "futures",
- "getrandom",
- "headers",
- "http",
- "jsonwebtoken",
- "lazy_static",
- "migration",
- "password-auth",
- "sea-orm",
- "sea-query",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tower-http",
- "ulid",
- "user-agent-parser",
-]
-
-[[package]]
 name = "base64"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -695,6 +665,36 @@ name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
+
+[[package]]
+name = "ferrite"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "async_once",
+ "axum",
+ "base64 0.21.2",
+ "chrono",
+ "clap 4.3.12",
+ "futures",
+ "getrandom",
+ "headers",
+ "http",
+ "jsonwebtoken",
+ "lazy_static",
+ "migration",
+ "password-auth",
+ "sea-orm",
+ "sea-query",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tower-http",
+ "ulid",
+ "user-agent-parser",
+]
 
 [[package]]
 name = "flume"

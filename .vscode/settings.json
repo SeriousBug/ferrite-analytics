@@ -1,4 +1,4 @@
 {
   "rust-analyzer.linkedProjects": ["./service/migration/Cargo.toml"],
-  "cSpell.words": ["basalytics"]
+  "cSpell.words": ["ferrite"]
 }

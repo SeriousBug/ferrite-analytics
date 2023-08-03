@@ -61,7 +61,7 @@ pub async fn issue_token(account_id: String) -> String {
         sub: account_id,
         exp,
         iat,
-        iss: "basalytics".to_string(),
+        iss: "ferrite".to_string(),
     };
     encode(&Header::default(), &claims, JWT_ENCODING_SECRET.get().await).unwrap()
 }
