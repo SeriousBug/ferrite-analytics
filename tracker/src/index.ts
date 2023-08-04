@@ -84,7 +84,7 @@ const loadConfiguration = (configuration: Configuration) => {
       },
       {
         root: null /* browser viewport */,
-        threshold: ratioVisible,
+        threshold: ratioVisible / 100,
       },
     );
     document.querySelectorAll(selector).forEach((element) => {

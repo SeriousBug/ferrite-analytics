@@ -1,5 +1,5 @@
 {
-  "name": "tracker",
+  "name": "ferrite-tracker",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,12 +8,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "esbuild": "^0.18.11",
     "typescript": "^5.1.6"
-  },
-  "dependencies": {
-    "nanoid": "^4.0.2"
   }
 }
