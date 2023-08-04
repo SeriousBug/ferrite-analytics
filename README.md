@@ -1,4 +1,4 @@
-# Basalt Analytics
+# Ferrite Analytics
 
 This is a service for tracking user events in a way that respects users privacy.
 
