@@ -10,9 +10,11 @@ use axum::{http::header, routing::get, Router};
 use clap::Parser;
 use cli::run_command::RunCommand;
 use cli::Cli;
+use http::Method;
 use state::get_db;
 use std::net::SocketAddr;
 use std::sync::Arc;
+use tower_http::cors;
 
 #[tokio::main]
 async fn main() {
@@ -23,6 +25,13 @@ async fn main() {
         db: get_db().await.unwrap(),
         forwarded_ip_header: cli.forward_ip_header.to_owned(),
     });
+
+    let cors = cors::CorsLayer::new()
+        // allow `GET` and `POST` when accessing the resource
+        .allow_methods([Method::GET, Method::POST])
+        // allow requests from any origin
+        .allow_origin(cors::Any)
+        .allow_headers(vec![http::header::CONTENT_TYPE]);
 
     // build our application with a single route
     let app = Router::new()
@@ -42,7 +51,8 @@ async fn main() {
                 )
             }),
         )
-        .with_state(state);
+        .with_state(state)
+        .layer(cors);
 
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())

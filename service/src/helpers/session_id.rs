@@ -84,7 +84,7 @@ pub async fn get_session_id(
         .unwrap_or("");
 
     let mut hasher = Sha256::new();
-    hasher.update("basalytics");
+    hasher.update("ferrite");
     hasher.update(today);
     hasher.update(get_today_code().await);
     hasher.update(ip);

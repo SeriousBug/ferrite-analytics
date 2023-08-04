@@ -31,7 +31,7 @@ let sampleRate = 1;
  *
  * Events are not sent immediately, but are queued up and sent in batches.
  */
-const basalytics = (
+const ferrite = (
   name: TrackingEvent["name"],
   properties?: TrackingEvent["properties"],
 ) => {
@@ -57,11 +57,11 @@ const basalytics = (
 };
 
 // @ts-ignore
-window.basalytics = basalytics;
+window.ferrite = ferrite;
 
 // Capture the page view
 window.addEventListener("load", () => {
-  basalytics("view", {
+  ferrite("view", {
     path: window.location.pathname,
   });
 });
@@ -73,14 +73,14 @@ const loadConfiguration = (configuration: Configuration) => {
   eventTrackers?.forEach(({ selector, event, name }) => {
     document.querySelectorAll(selector).forEach((element) => {
       element.addEventListener(event, () => {
-        basalytics(name ?? `${selector} ${event}`);
+        ferrite(name ?? `${selector} ${event}`);
       });
     });
   });
   visibilityTrackers?.forEach(({ selector, name, ratioVisible = 100 }) => {
     const observer = new IntersectionObserver(
       () => {
-        basalytics(name ?? `${selector} view`);
+        ferrite(name ?? `${selector} view`);
       },
       {
         root: null /* browser viewport */,
@@ -105,7 +105,7 @@ type Configuration = {
 
 const log = {
   error: (message: string, ...rest: unknown[]) => {
-    console.error(`basalytics: ${message}`, ...rest);
+    console.error(`ferrite: ${message}`, ...rest);
   },
 };
 
