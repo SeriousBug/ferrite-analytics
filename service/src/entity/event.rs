@@ -12,13 +12,29 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::property::Entity")]
-    Property,
+    #[sea_orm(has_many = "super::property_boolean::Entity")]
+    PropertyBoolean,
+    #[sea_orm(has_many = "super::property_integer::Entity")]
+    PropertyInteger,
+    #[sea_orm(has_many = "super::property_string::Entity")]
+    PropertyString,
 }
 
-impl Related<super::property::Entity> for Entity {
+impl Related<super::property_boolean::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::Property.def()
+        Relation::PropertyBoolean.def()
+    }
+}
+
+impl Related<super::property_integer::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::PropertyInteger.def()
+    }
+}
+
+impl Related<super::property_string::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::PropertyString.def()
     }
 }
 

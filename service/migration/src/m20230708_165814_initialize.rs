@@ -18,21 +18,25 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
-        // The properties table stores the actual data attached to the events.
+        // The properties tables stores the actual data attached to the events.
         manager
             .create_table(
                 Table::create()
-                    .table(Property::Table)
+                    .table(PropertyString::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Property::EventKey).string().not_null())
-                    .col(ColumnDef::new(Property::Name).string().not_null())
-                    .col(ColumnDef::new(Property::Value).string().not_null())
-                    .col(ColumnDef::new(Property::ValueType).integer().not_null())
-                    .primary_key(Index::create().col(Property::EventKey).col(Property::Name))
+                    .col(ColumnDef::new(PropertyString::EventKey).string().not_null())
+                    .col(ColumnDef::new(PropertyString::Name).string().not_null())
+                    .col(ColumnDef::new(PropertyString::Value).string().not_null())
+                    .primary_key(
+                        Index::create()
+                            .unique()
+                            .col(PropertyString::EventKey)
+                            .col(PropertyString::Name),
+                    )
                     .foreign_key(
                         ForeignKey::create()
-                            .from_tbl(Property::Table)
-                            .from_col(Property::EventKey)
+                            .from_tbl(PropertyString::Table)
+                            .from_col(PropertyString::EventKey)
                             .to_tbl(Event::Table)
                             .to_col(Event::Key)
                             .on_delete(ForeignKeyAction::Cascade)
@@ -41,15 +45,100 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
-
         manager
             .create_index(
                 Index::create()
                     .if_not_exists()
-                    .name("ux_name_value")
-                    .table(Property::Table)
-                    .col(Property::Name)
-                    .col(Property::Value)
+                    .name(&PropertyString::IndexNameValue.to_string())
+                    .table(PropertyString::Table)
+                    .col(PropertyString::Name)
+                    .col(PropertyString::Value)
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(PropertyInteger::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(PropertyInteger::EventKey)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(PropertyInteger::Name).string().not_null())
+                    .col(ColumnDef::new(PropertyInteger::Value).integer().not_null())
+                    .primary_key(
+                        Index::create()
+                            .unique()
+                            .col(PropertyInteger::EventKey)
+                            .col(PropertyInteger::Name),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from_tbl(PropertyInteger::Table)
+                            .from_col(PropertyInteger::EventKey)
+                            .to_tbl(Event::Table)
+                            .to_col(Event::Key)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name(&PropertyInteger::IndexNameValue.to_string())
+                    .table(PropertyInteger::Table)
+                    .col(PropertyInteger::Name)
+                    .col(PropertyInteger::Value)
+                    .to_owned(),
+            )
+            .await
+            .unwrap();
+
+        manager
+            .create_table(
+                Table::create()
+                    .table(PropertyBoolean::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(PropertyBoolean::EventKey)
+                            .string()
+                            .not_null(),
+                    )
+                    .col(ColumnDef::new(PropertyBoolean::Name).string().not_null())
+                    .col(ColumnDef::new(PropertyBoolean::Value).boolean().not_null())
+                    .primary_key(
+                        Index::create()
+                            .unique()
+                            .col(PropertyBoolean::EventKey)
+                            .col(PropertyBoolean::Name),
+                    )
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from_tbl(PropertyBoolean::Table)
+                            .from_col(PropertyBoolean::EventKey)
+                            .to_tbl(Event::Table)
+                            .to_col(Event::Key)
+                            .on_delete(ForeignKeyAction::Cascade)
+                            .on_update(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name(&PropertyBoolean::IndexNameValue.to_string())
+                    .table(PropertyBoolean::Table)
+                    .col(PropertyBoolean::Name)
+                    .col(PropertyBoolean::Value)
                     .to_owned(),
             )
             .await
@@ -191,14 +280,6 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(
-                Index::drop()
-                    .name("ux_account_username")
-                    .table(Account::Table)
-                    .to_owned(),
-            )
-            .await?;
-        manager
             .drop_table(Table::drop().table(Dashboard::Table).to_owned())
             .await?;
         manager
@@ -211,7 +292,13 @@ impl MigrationTrait for Migration {
             .drop_table(Table::drop().table(Account::Table).to_owned())
             .await?;
         manager
-            .drop_table(Table::drop().table(Property::Table).to_owned())
+            .drop_table(Table::drop().table(PropertyString::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(PropertyInteger::Table).to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().table(PropertyBoolean::Table).to_owned())
             .await?;
         manager
             .drop_table(Table::drop().table(Event::Table).to_owned())
@@ -235,12 +322,28 @@ pub enum Event {
 }
 
 #[derive(Iden)]
-pub enum Property {
+pub enum PropertyString {
     Table,
     EventKey,
     Name,
     Value,
-    ValueType,
+    IndexNameValue,
+}
+#[derive(Iden)]
+pub enum PropertyInteger {
+    Table,
+    EventKey,
+    Name,
+    Value,
+    IndexNameValue,
+}
+#[derive(Iden)]
+pub enum PropertyBoolean {
+    Table,
+    EventKey,
+    Name,
+    Value,
+    IndexNameValue,
 }
 
 #[derive(Iden)]

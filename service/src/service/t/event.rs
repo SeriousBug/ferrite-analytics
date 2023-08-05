@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 
-use crate::helpers::event::EventDataTypes;
+use crate::entity::{property_boolean, property_integer, property_string};
+use crate::helpers::event::EventValue;
 use crate::state::AppState;
 use crate::{entity, helpers::session_id::SessionId};
 
 use axum::Json;
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, TransactionTrait};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, DatabaseTransaction, Set, TransactionTrait};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Event {
     name: String,
-    properties: HashMap<String, serde_json::Value>,
+    properties: HashMap<String, EventValue>,
 }
 
 pub async fn post(session_id: SessionId, state: AppState, Json(events): Json<Vec<Event>>) {
@@ -33,11 +33,10 @@ async fn save_event(event: Event, db: DatabaseConnection, SessionId(session_id):
     .await
     .unwrap();
 
-    entity::property::ActiveModel {
+    property_string::ActiveModel {
         event_key: Set(event_model.key.to_owned()),
         name: Set("name".to_string()),
         value: Set(event.name.to_string()),
-        value_type: Set(EventDataTypes::String as i32),
         ..Default::default()
     }
     .insert(&txn)
@@ -45,25 +44,13 @@ async fn save_event(event: Event, db: DatabaseConnection, SessionId(session_id):
     .unwrap();
 
     for (name, value) in event.properties {
-        if let Some(value_type) = get_value_type(&value) {
-            entity::property::ActiveModel {
-                event_key: Set(event_model.key.to_owned()),
-                name: Set(name.to_string()),
-                value: Set(value.to_string()),
-                value_type: Set(value_type as i32),
-                ..Default::default()
-            }
-            .insert(&txn)
-            .await
-            .unwrap();
-        }
+        save_json_property(&txn, event_model.key.to_owned(), name, value).await;
     }
 
-    entity::property::ActiveModel {
+    property_string::ActiveModel {
         event_key: Set(event_model.key.to_owned()),
         name: Set("session".to_string()),
         value: Set(session_id.to_string()),
-        value_type: Set(EventDataTypes::String as i32),
         ..Default::default()
     }
     .insert(&txn)
@@ -73,16 +60,45 @@ async fn save_event(event: Event, db: DatabaseConnection, SessionId(session_id):
     txn.commit().await.unwrap();
 }
 
-fn get_value_type(value: &Value) -> Option<EventDataTypes> {
-    if value.is_string() {
-        Some(EventDataTypes::String)
-    } else if value.is_number() {
-        Some(EventDataTypes::Number)
-    } else if value.is_boolean() {
-        Some(EventDataTypes::Boolean)
-    } else if value.is_null() {
-        Some(EventDataTypes::Null)
-    } else {
-        None
-    }
+async fn save_json_property(
+    txn: &DatabaseTransaction,
+    event_key: String,
+    name: String,
+    value: EventValue,
+) {
+    match value {
+        EventValue::Boolean(value) => {
+            property_boolean::ActiveModel {
+                event_key: Set(event_key),
+                name: Set(name),
+                value: Set(value),
+                ..Default::default()
+            }
+            .insert(txn)
+            .await
+            .unwrap();
+        }
+        EventValue::Integer(value) => {
+            property_integer::ActiveModel {
+                event_key: Set(event_key),
+                name: Set(name),
+                value: Set(value),
+                ..Default::default()
+            }
+            .insert(txn)
+            .await
+            .unwrap();
+        }
+        EventValue::String(value) => {
+            property_string::ActiveModel {
+                event_key: Set(event_key),
+                name: Set(name),
+                value: Set(value),
+                ..Default::default()
+            }
+            .insert(txn)
+            .await
+            .unwrap();
+        }
+    };
 }
