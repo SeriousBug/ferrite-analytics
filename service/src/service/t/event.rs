@@ -5,7 +5,7 @@ use crate::helpers::event::EventValue;
 use crate::state::AppState;
 use crate::{entity, helpers::session_id::SessionId};
 
-use axum::Json;
+use axum::body::Bytes;
 use sea_orm::{ActiveModelTrait, DatabaseConnection, DatabaseTransaction, Set, TransactionTrait};
 use serde::{Deserialize, Serialize};
 
@@ -15,7 +15,10 @@ pub struct Event {
     properties: HashMap<String, EventValue>,
 }
 
-pub async fn post(session_id: SessionId, state: AppState, Json(events): Json<Vec<Event>>) {
+pub async fn post(session_id: SessionId, state: AppState, body: Bytes) {
+    // We don't get the right content type header, so the json extractor doesn't
+    // work. Instead we just grab the body and parse it ourselves.
+    let events: Vec<Event> = serde_json::from_slice(&body).unwrap();
     // Save the event data
     for event in events {
         save_event(event, state.db.clone(), &session_id).await;
