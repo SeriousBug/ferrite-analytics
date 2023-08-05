@@ -5,27 +5,21 @@ type TrackingEvent = {
 let queue: TrackingEvent[] = [];
 let flushTimeout: number | undefined;
 
+let sendEventsToUrl = "/t/event";
+
 const QUEUE_FLUSH_LIMIT = 10;
-const QUEUE_FLUSH_TIMEOUT = 10000;
+const QUEUE_FLUSH_TIMEOUT = 1000;
 
 /** Send the queued events right now.
  *
  * Clears the queue and cancels any pending flushes.
  */
-const flush = () => {
-  fetch("http://localhost:3000/t/event", {
-    method: "POST",
-    body: JSON.stringify(queue),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+const flush = async () => {
+  navigator.sendBeacon(sendEventsToUrl, JSON.stringify(queue));
   queue = [];
   clearTimeout(flushTimeout);
   flushTimeout = undefined;
 };
-
-let sampleRate = 1;
 
 /** Send an event to be tracked.
  *
@@ -35,12 +29,6 @@ const ferrite = (
   name: TrackingEvent["name"],
   properties?: TrackingEvent["properties"],
 ) => {
-  if (Math.random() > sampleRate) {
-    // If `sampleRate` is 0.1, then Math.random() will be greater than 0.1 90%
-    // of the time, and thus 90% of the events will be dropped. 10% of the
-    // events will be sent.
-    return;
-  }
   queue.push({
     name,
     properties: properties ?? {},
@@ -55,7 +43,6 @@ const ferrite = (
   }
   // else, there's room in the queue and a flush is already scheduled, just wait
 };
-
 // @ts-ignore
 window.ferrite = ferrite;
 
@@ -66,9 +53,20 @@ window.addEventListener("load", () => {
   });
 });
 
+// Send remaining events when the page is unloaded
+document.addEventListener("visibilitychange", function logData() {
+  if (document.visibilityState === "hidden") {
+    flush();
+  }
+});
+
 /** Load the provided configuration, setting up event listeners. */
 const loadConfiguration = (configuration: Configuration) => {
-  const { eventTrackers, visibilityTrackers } = configuration;
+  const { eventTrackers, visibilityTrackers, baseUrl } = configuration;
+
+  if (baseUrl) {
+    sendEventsToUrl = baseUrl + sendEventsToUrl;
+  }
 
   eventTrackers?.forEach(({ selector, event, name }) => {
     document.querySelectorAll(selector).forEach((element) => {
@@ -100,7 +98,7 @@ type Configuration = {
     name?: string;
     ratioVisible?: number;
   }[];
-  sampleRate?: number;
+  baseUrl?: string;
 };
 
 const log = {

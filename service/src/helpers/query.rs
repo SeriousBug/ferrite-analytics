@@ -2,7 +2,9 @@ use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, PaginatorTrait, Quer
 use sea_query::{Condition, Expr, IntoCondition, Query};
 use serde::{Deserialize, Serialize};
 
-use crate::entity::{event, property};
+use crate::entity::{event, property_boolean, property_integer, property_string};
+
+use super::event::EventValue;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QueryData {
@@ -19,7 +21,7 @@ pub enum Filter {
     #[serde(rename = "or")]
     FilterOr(Vec<Filter>),
     #[serde(rename = "filter")]
-    FilterValue { name: String, eq: String },
+    FilterValue { name: String, eq: EventValue },
 }
 
 impl Filter {
@@ -40,14 +42,26 @@ impl Filter {
                 cond
             }
             Filter::FilterValue { name, eq } => event::Column::Key
-                .in_subquery(
-                    Query::select()
-                        .column(property::Column::EventKey)
-                        .from(property::Entity)
-                        .and_where(Expr::col(property::Column::Name).eq(name))
-                        .and_where(Expr::col(property::Column::Value).eq(eq))
+                .in_subquery(match eq {
+                    EventValue::Boolean(eq) => Query::select()
+                        .column(property_boolean::Column::EventKey)
+                        .from(property_boolean::Entity)
+                        .and_where(Expr::col(property_boolean::Column::Name).eq(name))
+                        .and_where(Expr::col(property_boolean::Column::Value).eq(*eq))
                         .to_owned(),
-                )
+                    EventValue::Integer(eq) => Query::select()
+                        .column(property_integer::Column::EventKey)
+                        .from(property_integer::Entity)
+                        .and_where(Expr::col(property_integer::Column::Name).eq(name))
+                        .and_where(Expr::col(property_integer::Column::Value).eq(*eq))
+                        .to_owned(),
+                    EventValue::String(eq) => Query::select()
+                        .column(property_string::Column::EventKey)
+                        .from(property_string::Entity)
+                        .and_where(Expr::col(property_string::Column::Name).eq(name))
+                        .and_where(Expr::col(property_string::Column::Value).eq(eq))
+                        .to_owned(),
+                })
                 .into_condition(),
         }
     }
