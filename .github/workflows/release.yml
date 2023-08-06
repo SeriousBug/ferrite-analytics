@@ -39,83 +39,29 @@ permissions:
 on:
   push:
     tags:
-      - "*-?v[0-9]+*"
+      - "release/*"
 
 jobs:
-  # Create the Github Release™ so the packages have something to be uploaded to
-  create-release:
+  release-builds:
+    name: build ${{ matrix.target }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: "service"
-    outputs:
-      has-releases: ${{ steps.create-release.outputs.has-releases }}
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust
-        run: rustup update 1.67.1 --no-self-update && rustup default 1.67.1
-      - name: Install cargo-dist
-        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.0.7/cargo-dist-installer.sh | sh
-      - id: create-release
-        run: |
-          cargo dist plan --tag=${{ github.ref_name }} --output-format=json > dist-manifest.json
-          echo "dist plan ran successfully"
-          cat dist-manifest.json
-
-          # Create the Github Release™ based on what cargo-dist thinks it should be
-          ANNOUNCEMENT_TITLE=$(jq --raw-output ".announcement_title" dist-manifest.json)
-          IS_PRERELEASE=$(jq --raw-output ".announcement_is_prerelease" dist-manifest.json)
-          jq --raw-output ".announcement_github_body" dist-manifest.json > new_dist_announcement.md
-          gh release create ${{ github.ref_name }} --draft --prerelease="$IS_PRERELEASE" --title="$ANNOUNCEMENT_TITLE" --notes-file=new_dist_announcement.md
-          echo "created announcement!"
-
-          # Upload the manifest to the Github Release™
-          gh release upload ${{ github.ref_name }} dist-manifest.json
-          echo "uploaded manifest!"
-
-          # Disable all the upload-artifacts tasks if we have no actual releases
-          HAS_RELEASES=$(jq --raw-output ".releases != null" dist-manifest.json)
-          echo "has-releases=$HAS_RELEASES" >> "$GITHUB_OUTPUT"
-
-  # Build and packages all the things
-  upload-artifacts:
-    # Let the initial task tell us to not run (currently very blunt)
-    needs: create-release
-    if: ${{ needs.create-release.outputs.has-releases == 'true' }}
     strategy:
+      fail-fast: false
       matrix:
-        # For these target platforms
-        include:
-          - os: macos-11
-            dist-args: --artifacts=local --target=aarch64-apple-darwin --target=x86_64-apple-darwin
-            install-dist: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.0.7/cargo-dist-installer.sh | sh
-          - os: ubuntu-20.04
-            dist-args: --artifacts=local --target=x86_64-unknown-linux-gnu
-            install-dist: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.0.7/cargo-dist-installer.sh | sh
-          - os: windows-2019
-            dist-args: --artifacts=local --target=x86_64-pc-windows-msvc
-            install-dist: irm  https://github.com/axodotdev/cargo-dist/releases/download/v0.0.7/cargo-dist-installer.ps1 | iex
-
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: "service"
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        target:
+          - x86_64-unknown-linux-musl
+          - x86_64-pc-windows-gnu
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-musleabihf
+          - arm-unknown-linux-musleabihf
     steps:
       - uses: actions/checkout@v3
-      - name: Install Rust
-        run: rustup update 1.67.1 --no-self-update && rustup default 1.67.1
-      - name: Install cargo-dist
-        run: ${{ matrix.install-dist }}
       - uses: pnpm/action-setup@v2
         with:
-          version: "8.6.9"
+          version: "7.29.0"
       - uses: actions/setup-node@v3
         with:
-          node-version: lts/hydrogen
+          node-version: "20.x"
           cache: pnpm
           cache-dependency-path: tracker/pnpm-lock.yaml
       - name: Install tracker deps
@@ -124,37 +70,103 @@ jobs:
       - name: Build tracker
         run: pnpm build
         working-directory: tracker
-      - name: Run cargo-dist
-        # This logic is a bit janky because it's trying to be a polyglot between
-        # powershell and bash since this will run on windows, macos, and linux!
-        # The two platforms don't agree on how to talk about env vars but they
-        # do agree on 'cat' and '$()' so we use that to marshal values between commands.
-        run: |
-          # Actually do builds and make zips and whatnot
-          cargo dist build --tag=${{ github.ref_name }} --output-format=json ${{ matrix.dist-args }} > dist-manifest.json
-          echo "dist ran successfully"
-          cat dist-manifest.json
+      - name: Install cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+      - name: Get final build
+        run: cross build --release --target ${{ matrix.target }}
+        working-directory: service
+      - name: Upload build
+        uses: actions/upload-artifact@v3
+        with:
+          name: ferrite-${{ matrix.target }}
+          path: service/target/${{ matrix.target }}/release/ferrite*
 
-          # Parse out what we just built and upload it to the Github Release™
-          jq --raw-output ".artifacts[]?.path | select( . != null )" dist-manifest.json > uploads.txt
-          echo "uploading..."
-          cat uploads.txt
-          gh release upload ${{ github.ref_name }} $(cat uploads.txt)
-          echo "uploaded!"
-
-  # Mark the Github Release™ as a non-draft now that everything has succeeded!
-  publish-release:
-    # Only run after all the other tasks, but it's ok if upload-artifacts was skipped
-    needs: [create-release, upload-artifacts]
-    if: ${{ always() && needs.create-release.result == 'success' && (needs.upload-artifacts.result == 'skipped' || needs.upload-artifacts.result == 'success') }}
+  compile-release:
+    name: Compile release
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: "service"
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    needs: [release-builds]
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
-      - name: mark release as non-draft
+      - uses: actions/download-artifact@v3
+      - name: Calculate version
+        id: version
         run: |
-          gh release edit ${{ github.ref_name }} --draft=false
+          VERSION=$(echo ${{ github.ref_name }} | sed -E 's/^release[/](.*)$/\1/')
+          echo version=${VERSION} | tee -a "$GITHUB_OUTPUT"
+        # Downloaded artifacts are put into awkward folders, and they lose their permissions.
+        # So let's collect them into a single directory and mark them as executable.
+      - name: Collect downloaded artifacts
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mkdir -p release-artifacts
+          cp ferrite-aarch64-unknown-linux-musl/ferrite release-artifacts/ferrite.${VERSION}.linux-aarch64
+          cp ferrite-arm-unknown-linux-musleabihf/ferrite release-artifacts/ferrite.${VERSION}.linux-armv6
+          cp ferrite-armv7-unknown-linux-musleabihf/ferrite release-artifacts/ferrite.${VERSION}.linux-armv7
+          cp ferrite-x86_64-pc-windows-gnu/ferrite.exe release-artifacts/ferrite.${VERSION}.windows-x86_64.exe
+          cp ferrite-x86_64-unknown-linux-musl/ferrite release-artifacts/ferrite.${VERSION}.linux-x86_64
+          chmod +x release-artifacts/*
+        # Sign the artifacts! Ensures any downloaded artifacts came from this build process.
+      - name: Sign and prepare artifacts
+        run: |
+          echo "${SIGNING_PRIVATE_KEY}" | gpg --import -
+
+          cd release-artifacts
+          for file in * ; do
+            gpg --detach-sign "$file"
+          done
+
+          for file in *.linux-* ; do
+            tar -acf "${file}.tar.xz" "$file"
+          done
+          for file in *.windows-* ; do
+            zip "${file}.zip" "$file"
+          done
+        env:
+          SIGNING_PRIVATE_KEY: ${{ secrets.SIGNING_PRIVATE_KEY }}
+        # Create a draft release. The description can be manually created afterwards.
+      - name: Make release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: release-artifacts/*.tar.xz,release-artifacts/*.zip,release-artifacts/*.sig
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: true
+          allowUpdates: true
+          updateOnlyUnreleased: true
+          removeArtifacts: true
+          commit: ${{ github.ref_name }}
+          tag: release/${{ steps.version.outputs.version }}
+      - name: Log into Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: seriousbug
+          password: ${{ secrets.DOCKERHUB_PASS }}
+      - name: Log in to the Github Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: SeriousBug
+          password: ${{ secrets.GITHUB_TOKEN }}
+        # We need to put the binaries into specific folders then run the docker build with buildx
+      - name: Prepare to build docker images
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          mkdir -p Docker/binaries/linux/amd64 Docker/binaries/linux/arm64 Docker/binaries/linux/arm/v6 Docker/binaries/linux/arm/v7
+          cd Docker
+          cp ../release-artifacts/ferrite-analytics.${VERSION}.linux-aarch64 binaries/linux/arm64/ferrite-analytics
+          cp ../release-artifacts/ferrite-analytics.${VERSION}.linux-armv6 binaries/linux/arm/v6/ferrite-analytics
+          cp ../release-artifacts/ferrite-analytics.${VERSION}.linux-armv7 binaries/linux/arm/v7/ferrite-analytics
+          cp ../release-artifacts/ferrite-analytics.${VERSION}.linux-x86_64 binaries/linux/amd64/ferrite-analytics
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build and push Docker images
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          push: true
+          tags: seriousbug/ferrite-analytics:latest,seriousbug/ferrite-analytics:${{ steps.version.outputs.version }},ghcr.io/ferrite-analytics/ferrite-analytics:latest,ghcr.io/ferrite-analytics/ferrite-analytics:${{ steps.version.outputs.version }}
+          platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+          context: ./Docker
