@@ -7,7 +7,6 @@ on:
   push:
     tags:
       - "release/*"
-  workflow_dispatch:
 
 jobs:
   release-builds:
@@ -107,8 +106,6 @@ jobs:
           allowUpdates: true
           updateOnlyUnreleased: true
           removeArtifacts: true
-          commit: ${{ github.ref_name }}
-          tag: release/${{ steps.version.outputs.version }}
       - name: Log into Docker Hub
         uses: docker/login-action@v2
         with:
