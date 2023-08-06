@@ -44,6 +44,8 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cross
+      - name: Debugging the tracker build
+        run: find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
       - name: Get final build
         run: cross build --release --target ${{ matrix.target }}
         working-directory: service
