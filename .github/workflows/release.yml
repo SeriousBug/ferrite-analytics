@@ -40,6 +40,7 @@ on:
   push:
     tags:
       - "release/*"
+  workflow_dispatch:
 
 jobs:
   release-builds:
