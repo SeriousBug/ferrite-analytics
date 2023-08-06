@@ -1,7 +1,6 @@
 FROM scratch
 
 EXPOSE 3000/tcp
-VOLUME []
 
 ARG TARGETPLATFORM
 
