@@ -72,11 +72,11 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           mkdir -p release-artifacts
-          cp ferrite-aarch64-unknown-linux-musl/ferrite release-artifacts/ferrite.${VERSION}.linux-aarch64
-          cp ferrite-arm-unknown-linux-musleabihf/ferrite release-artifacts/ferrite.${VERSION}.linux-armv6
-          cp ferrite-armv7-unknown-linux-musleabihf/ferrite release-artifacts/ferrite.${VERSION}.linux-armv7
-          cp ferrite-x86_64-pc-windows-gnu/ferrite.exe release-artifacts/ferrite.${VERSION}.windows-x86_64.exe
-          cp ferrite-x86_64-unknown-linux-musl/ferrite release-artifacts/ferrite.${VERSION}.linux-x86_64
+          cp ferrite-aarch64-unknown-linux-musl/ferrite release-artifacts/ferrite-analytics.${VERSION}.linux-aarch64
+          cp ferrite-arm-unknown-linux-musleabihf/ferrite release-artifacts/ferrite-analytics.${VERSION}.linux-armv6
+          cp ferrite-armv7-unknown-linux-musleabihf/ferrite release-artifacts/ferrite-analytics.${VERSION}.linux-armv7
+          cp ferrite-x86_64-pc-windows-gnu/ferrite.exe release-artifacts/ferrite-analytics.${VERSION}.windows-x86_64.exe
+          cp ferrite-x86_64-unknown-linux-musl/ferrite release-artifacts/ferrite-analytics.${VERSION}.linux-x86_64
           chmod +x release-artifacts/*
         # Sign the artifacts! Ensures any downloaded artifacts came from this build process.
       - name: Sign and prepare artifacts
