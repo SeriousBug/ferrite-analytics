@@ -133,6 +133,6 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           push: true
-          tags: seriousbug/ferrite-analytics:latest,seriousbug/ferrite-analytics:${{ steps.version.outputs.version }},ghcr.io/ferrite-analytics/ferrite-analytics:latest,ghcr.io/ferrite-analytics/ferrite-analytics:${{ steps.version.outputs.version }}
+          tags: seriousbug/ferrite-analytics:latest,seriousbug/ferrite-analytics:${{ steps.version.outputs.version }},ghcr.io/seriousbug/ferrite-analytics:latest,ghcr.io/seriousbug/ferrite-analytics:${{ steps.version.outputs.version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
           context: ./Docker
