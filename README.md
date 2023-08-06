@@ -1,6 +1,6 @@
 # Ferrite Analytics
 
-This is a service for tracking user events in a way that respects users privacy.
+This is a service for tracking user events in a way that respects users' privacy.
 
 ### What is Ferrite Analytics?
 
@@ -44,6 +44,38 @@ In the meantime, please consider some of these other open source projects:
 - [Plausible Analytics](https://plausible.io/) is a more comprehensive web
   analytics tool. It's open source, with both managed service and self hosting
   options available.
+
+### Do I need a cookie banner / GDPR consent banner with Ferrite Analytics?
+
+I'm not a lawyer, but I don't think so.
+
+The ePrivacy Directive deals with "devices installed on user's equipment" such
+as cookies, but Ferrite Analytics deliberately does not store cookies or any
+other data on the users device. GDPR deals with "personal data", which is
+defined as any information that related to an identified or identifiable
+individual. Ferrite analytics avoids collecting any information that could
+identify a user: no IP address is stored, no other unique identifiers are
+collected, session hashes are temporary so a user can't be tracked for more than
+a day, session hashes will be different across different deployments of Ferrite
+Analytics so a user can't be tracked across different websites, and session
+hashes are hashed irreversibly so the original IP address can't be recovered.
+consent banner.
+
+The upcoming [ePrivacy Regulation](https://en.wikipedia.org/wiki/EPrivacy_Regulation)
+is expected to clarify and relax the rules around "non-privacy-intrusive
+cookies" and "cookies used by a website to count the number of visitors".
+Considering that, I believe that Ferrite Analytics also follows the spirit of
+the law.
+
+Finally, Ferrite Analytics collects the same or less information than Plausible
+Analytics. They claim that you don't need a banner with Plausible Analytics,
+which also supports my take on the ePrivacy/GDPR.
+
+**However**, do not take any of this as a guarantee. As the license text goes,
+Ferrite Analytics is provided "WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR
+IMPLIED". If you have any concerns or questions around GDPR and ePrivacy
+Directive, contact an expert. Ferrite Analytics can not and does not guarantee
+any sort of protection from these laws.
 
 ## Usage
 
