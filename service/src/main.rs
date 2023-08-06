@@ -18,6 +18,7 @@ use tower_http::cors;
 
 #[tokio::main]
 async fn main() {
+    dotenv::dotenv().ok();
     let cli = Cli::parse();
     cli.run().await.unwrap();
 

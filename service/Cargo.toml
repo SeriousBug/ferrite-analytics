@@ -51,3 +51,5 @@ clap = { version = "4.3.12", features = ["derive"] }
 sha2 = "0.10"
 base64 = "0.21"
 getrandom = "0.2"
+# .env files
+dotenv = "0.15"

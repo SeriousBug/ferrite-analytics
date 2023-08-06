@@ -16,7 +16,9 @@ pub async fn get_db() -> anyhow::Result<DatabaseConnection> {
     // Not sure if this is strictly required, but we'll use a lock to ensure
     // that we don't try to run migrations in parallel.
     let lock = MIGRATION_LOCK.lock().await;
-    let db: DatabaseConnection = Database::connect("sqlite://test.sqlite?mode=rwc").await?;
+    let db_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL environment variable must be set");
+    let db: DatabaseConnection = Database::connect(db_url).await?;
     Migrator::up(&db, None).await?;
 
     if db
