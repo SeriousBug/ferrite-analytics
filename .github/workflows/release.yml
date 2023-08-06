@@ -44,11 +44,8 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: cross
-      - name: Debugging the tracker build
-        run: find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
       - name: Get final build
-        run: cross build --release --target ${{ matrix.target }}
-        working-directory: service
+        run: cross build --release --target ${{ matrix.target }} --manifest-path service/Cargo.toml
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
