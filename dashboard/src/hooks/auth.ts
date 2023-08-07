@@ -7,7 +7,7 @@ const authSchema = z.object({
 });
 
 export function useAuth() {
-  const { value: storedToken, update: updateToken } = useLocalStorage(
+  const [storedToken, updateToken] = useLocalStorage(
     LocalStorage.Auth,
     authSchema.parse,
   );
