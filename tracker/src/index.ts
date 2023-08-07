@@ -14,8 +14,17 @@ const QUEUE_FLUSH_TIMEOUT = 1000;
  *
  * Clears the queue and cancels any pending flushes.
  */
-const flush = async () => {
-  navigator.sendBeacon(sendEventsToUrl, JSON.stringify(queue));
+const flush = async (isClosing = false) => {
+  const body = JSON.stringify(queue);
+  if (isClosing) {
+    // If the page is about to close, the fetch will fail. `sendBeacon` will
+    // keep running after the unload.
+    navigator.sendBeacon(sendEventsToUrl, body);
+  } else {
+    // Otherwise, use fetch to send the events. We don't want to use
+    // `sendBeacon` all the time because addons like uBlock Origin block them.
+    fetch(sendEventsToUrl, { body, method: "POST" });
+  }
   queue = [];
   clearTimeout(flushTimeout);
   flushTimeout = undefined;
@@ -56,7 +65,7 @@ window.addEventListener("load", () => {
 // Send remaining events when the page is unloaded
 document.addEventListener("visibilitychange", function logData() {
   if (document.visibilityState === "hidden") {
-    flush();
+    flush(true);
   }
 });
 
