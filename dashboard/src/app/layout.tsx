@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import { LoginButton } from "@/components/login-button";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`min-h-screen flex flex-col justify-start ${inter.className} bg-base-300`}
+        suppressHydrationWarning
       >
         <header className="navbar bg-base-100 shadow-lg mb-8">
           <div className="navbar-start">
@@ -37,6 +39,7 @@ export default function RootLayout({
         <footer className="p-4 shadow-above-lg bg-base-200 opacity-90 mt-8">
           Ferrite Analytics is open source software licensed under AGPLv3.
         </footer>
+        <Script src="/theme.js" strategy="beforeInteractive" />
       </body>
     </html>
   );

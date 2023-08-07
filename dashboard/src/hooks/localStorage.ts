@@ -1,23 +1,27 @@
-import { useCallback, useMemo } from "react";
+"use client";
+import { useCallback, useEffect, useState } from "react";
 
 export enum LocalStorage {
   Auth = "Auth",
+  Theme = "Theme",
 }
 
 export function useLocalStorage<T>(
   key: LocalStorage,
   parse: (value: unknown) => T,
-) {
-  const value = useMemo(() => {
-    const value = localStorage.getItem(key);
-    if (value) {
-      return parse(JSON.parse(value));
+): [T | null, (value: T | null) => void] {
+  const [value, setValue] = useState<T | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      setValue(parse(JSON.parse(stored)));
     }
-    return null;
   }, [key, parse]);
 
   const update = useCallback(
     (newValue: T | null) => {
+      setValue(newValue);
       if (newValue === null) {
         localStorage.removeItem(key);
       } else {
@@ -27,8 +31,5 @@ export function useLocalStorage<T>(
     [key, parse],
   );
 
-  return {
-    value,
-    update,
-  };
+  return [value, update];
 }
