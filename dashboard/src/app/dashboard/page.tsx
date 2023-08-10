@@ -1,6 +1,6 @@
 "use client";
 import { useAuth } from "@/hooks/auth";
-import { endOfDay, formatRFC3339, startOfDay, subDays } from "date-fns";
+import { endOfDay, format, formatRFC3339, startOfDay, subDays } from "date-fns";
 import { useCallback, useMemo } from "react";
 import useSWRInfinite from "swr/infinite";
 import { z } from "zod";
@@ -13,6 +13,8 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
+import useSWR from "swr";
+import { useThemeColor } from "@/hooks/themeColor";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 type AnalyticsFilter =
@@ -52,7 +54,10 @@ function useAnalyticsDataFetcher(name: string, eq: string) {
         method: "POST",
         body: JSON.stringify(body),
       });
-      return z.coerce.number().parse(await resp.text());
+      return {
+        label: format(date, "MMM dd"),
+        value: z.coerce.number().parse(await resp.text()),
+      };
     },
     [eq, name],
   );
@@ -87,34 +92,33 @@ function useAnalyticsData(name: string, eq: string) {
 }
 
 export default function Dashboard() {
+  const { primary, primaryContent } = useThemeColor();
   const { data, error } = useAnalyticsData("name", "tracking-pixel");
+
+  const labels = useMemo(() => {
+    return data?.map((d) => d.label);
+  }, [data]);
+  const values = useMemo(() => {
+    return data?.map((d) => d.value);
+  }, [data]);
 
   console.log(error);
 
   return (
-    <>
-      <p>Hey</p>
+    <div className="bg-base-100 p-8 rounded-box shadow-lg ">
       <Line
         data={{
-          labels: [
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
-            "a",
-            "b",
-            "c",
-            "d",
-            "e",
-            "f",
-            "g",
+          labels,
+          datasets: [
+            {
+              data: values,
+              // borderColor is the color of the line
+              borderColor: `hsl(${primary})`,
+              backgroundColor: `hsl(${primaryContent})`,
+            },
           ],
-          datasets: [{ data }],
         }}
       />
-    </>
+    </div>
   );
 }
