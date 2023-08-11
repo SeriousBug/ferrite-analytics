@@ -120,6 +120,22 @@ export function AnalyticsCard({
 
   return (
     <div className="bg-base-100 p-8 rounded-box shadow-lg relative">
+      <div className="relative h-[30vh]">
+        <Line
+          options={{ maintainAspectRatio: false }}
+          data={{
+            labels,
+            datasets: [
+              {
+                data: values,
+                // borderColor is the color of the line
+                borderColor: `hsl(${primary})`,
+                backgroundColor: `hsl(${primaryContent})`,
+              },
+            ],
+          }}
+        />
+      </div>
       <button
         aria-label="delete"
         className="btn btn-circle absolute right-4 top-4"
@@ -127,19 +143,6 @@ export function AnalyticsCard({
       >
         <PiTrash size={24} />
       </button>
-      <Line
-        data={{
-          labels,
-          datasets: [
-            {
-              data: values,
-              // borderColor is the color of the line
-              borderColor: `hsl(${primary})`,
-              backgroundColor: `hsl(${primaryContent})`,
-            },
-          ],
-        }}
-      />
     </div>
   );
 }
