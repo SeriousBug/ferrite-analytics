@@ -10,7 +10,6 @@ export function useThemeColor() {
     const primary = getPropertyValue("--p");
     const primaryContent = getPropertyValue("--pc");
     const secondary = getPropertyValue("--s");
-    console.log({ primary, primaryContent, secondary });
     return { primary, primaryContent, secondary };
   }, []);
 

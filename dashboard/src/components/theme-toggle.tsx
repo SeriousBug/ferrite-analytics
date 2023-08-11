@@ -25,7 +25,11 @@ export function ThemeToggle() {
   }, [theme, mutateTheme, setTheme]);
 
   return (
-    <div className="btn btn-ghost text-xl" onClick={toggleTheme}>
+    <div
+      aria-label="toggle theme"
+      className="btn btn-ghost text-xl"
+      onClick={toggleTheme}
+    >
       <PiLightbulbBold />
     </div>
   );

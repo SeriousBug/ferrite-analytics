@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 export enum LocalStorage {
   Auth = "Auth",
   Theme = "Theme",
+  Cards = "Cards",
 }
 
 export function useLocalStorage<T>(
@@ -15,7 +16,13 @@ export function useLocalStorage<T>(
   useEffect(() => {
     const stored = localStorage.getItem(key);
     if (stored) {
-      setValue(parse(JSON.parse(stored)));
+      try {
+        setValue(parse(JSON.parse(stored)));
+      } catch (error) {
+        // TODO: toast the error
+        console.error("Failed to parsed data saved in localStorage", error);
+        localStorage.removeItem(key);
+      }
     }
   }, [key, parse]);
 
