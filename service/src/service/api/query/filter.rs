@@ -5,7 +5,7 @@ use crate::{
     state::AppState,
 };
 
-pub async fn get(
+pub async fn post(
     _: TokenClaims,
     state: AppState,
     Json(query_data): Json<QueryData>,
