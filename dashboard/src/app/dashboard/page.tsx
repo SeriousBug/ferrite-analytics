@@ -13,7 +13,6 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import useSWR from "swr";
 import { useThemeColor } from "@/hooks/themeColor";
 import { LocalStorage, useLocalStorage } from "@/hooks/localStorage";
 import { PiTrash } from "react-icons/pi";
@@ -99,7 +98,7 @@ function useAnalyticsData(name: string, eq: string) {
   };
 }
 
-export function AnalyticsCard({
+function AnalyticsCard({
   name,
   eq,
   remove,

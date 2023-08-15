@@ -53,3 +53,5 @@ base64 = "0.21"
 getrandom = "0.2"
 # .env files
 dotenv = "0.15"
+# Embed resources
+rust-embed-for-web = "11.1.1"

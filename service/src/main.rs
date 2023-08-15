@@ -42,6 +42,8 @@ async fn main() {
         .route("/t/t.png", get(crate::service::t::t_png::get))
         .route("/t/event", post(crate::service::t::event::post))
         .route("/r/script.js", get(crate::service::r::script_js::get))
+        .route("/d/", get(crate::service::d::get))
+        .route("/d/*rest", get(crate::service::d::get))
         .route("/api/auth/login", post(crate::service::api::auth::login::post))
         .route("/api/auth/me", get(crate::service::api::auth::me::get))
         .route("/api/query/filter", post(crate::service::api::query::filter::post))

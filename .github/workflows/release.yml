@@ -39,6 +39,17 @@ jobs:
       - name: Build tracker
         run: pnpm build
         working-directory: tracker
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+          cache: pnpm
+          cache-dependency-path: dashboard/pnpm-lock.yaml
+      - name: Install dashboard deps
+        run: pnpm install
+        working-directory: dashboard
+      - name: Build dashboard
+        run: pnpm build
+        working-directory: dashboard
       - name: Install cross
         uses: taiki-e/install-action@v2
         with:

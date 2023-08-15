@@ -39,7 +39,7 @@ export default function RootLayout({
         <footer className="p-4 shadow-above-lg bg-base-200 opacity-90 mt-8">
           Ferrite Analytics is open source software licensed under AGPLv3.
         </footer>
-        <Script src="/theme.js" strategy="beforeInteractive" />
+        <Script src="/d/theme.js" strategy="beforeInteractive" />
       </body>
     </html>
   );

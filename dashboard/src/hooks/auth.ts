@@ -1,12 +1,14 @@
 import { z } from "zod";
 import { LocalStorage, useLocalStorage } from "./localStorage";
 import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 const authSchema = z.object({
   token: z.string(),
 });
 
 export function useAuth() {
+  const router = useRouter();
   const [storedToken, updateToken] = useLocalStorage(
     LocalStorage.Auth,
     authSchema.parse,
@@ -29,7 +31,8 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     updateToken(null);
-  }, [updateToken]);
+    router.push("/login");
+  }, [router, updateToken]);
 
   return {
     token: storedToken?.token ?? null,
