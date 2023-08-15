@@ -1,7 +1,6 @@
 "use client";
 import { useAuth } from "@/hooks/auth";
 import Link from "next/link";
-import { useCallback } from "react";
 
 export function LoginButton() {
   const { token, logout } = useAuth();
