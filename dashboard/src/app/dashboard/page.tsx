@@ -120,6 +120,9 @@ function AnalyticsCard({
 
   return (
     <div className="bg-base-100 p-8 rounded-box shadow-lg relative">
+      <h2 className="-mt-4 mb-4">
+        {name} = {eq}
+      </h2>
       <div className="relative h-[30vh]">
         <Line
           options={{ maintainAspectRatio: false }}
