@@ -2,7 +2,7 @@ import { z } from "zod";
 import { LocalStorage, useLocalStorage } from "./localStorage";
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { API_BASE_URL } from "@/helpers/api";
+import { getBaseUrl } from "@/helpers/api";
 
 const authSchema = z.object({
   token: z.string(),
@@ -17,7 +17,7 @@ export function useAuth() {
 
   const login = useCallback(
     async (body: { username: string; password: string }) => {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`${getBaseUrl()}/api/auth/login`, {
         method: "POST",
         body: JSON.stringify(body),
         headers: {

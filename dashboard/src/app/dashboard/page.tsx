@@ -16,7 +16,7 @@ import {
 import { useThemeColor } from "@/hooks/themeColor";
 import { LocalStorage, useLocalStorage } from "@/hooks/localStorage";
 import { PiTrash } from "react-icons/pi";
-import { API_BASE_URL } from "@/helpers/api";
+import { getBaseUrl } from "@/helpers/api";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 type AnalyticsFilter =
@@ -80,7 +80,7 @@ function useAnalyticsData(name: string, eq: string) {
       return [
         token,
         { name, eq },
-        `${API_BASE_URL}/query/filter`,
+        `${getBaseUrl()}/api/query/filter`,
         subDays(today, pageIndex),
       ];
     },
