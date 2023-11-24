@@ -39,43 +39,31 @@ requires writing json by hand.
 
 In the meantime, please consider some of these other open source projects:
 
-- [oxitraffic](https://codeberg.org/mo8it/oxitraffic) tracks page visits only,
-  it's simple but effective. Open source, self hosted.
+- [oxitraffic](https://codeberg.org/mo8it/oxitraffic) tracks page visits and
+  time spent only, it's simple but effective. Open source, self hosted.
 - [Plausible Analytics](https://plausible.io/) is a more comprehensive web
   analytics tool. It's open source, with both managed service and self hosting
   options available.
 
 ### Do I need a cookie banner / GDPR consent banner with Ferrite Analytics?
 
-I'm not a lawyer, but I don't think so.
+Yes, you probably still do. If you read [the guidelines by the European Data Protection Board](https://edpb.europa.eu/our-work-tools/documents/public-consultations/2023/guidelines-22023-technical-scope-art-53-eprivacy_en), they explain that (abbreviated by me):
 
-The ePrivacy Directive deals with "devices installed on user's equipment" such
-as cookies, but Ferrite Analytics deliberately does not store cookies or any
-other data on the users device. GDPR deals with "personal data", which is
-defined as any information that related to an identified or identifiable
-individual. Ferrite analytics avoids collecting any information that could
-identify a user: no IP address is stored, no other unique identifiers are
-collected, session hashes are temporary so a user can't be tracked for more than
-a day, session hashes will be different across different deployments of Ferrite
-Analytics so a user can't be tracked across different websites, and session
-hashes are hashed irreversibly so the original IP address can't be recovered.
-consent banner.
+> ... [tracking] pixel or tracked URL [...] constitutes storage [...], at the very least through the caching mechanism of the client-side software. As such,
+> Article 5(3) ePD is applicable ...
 
-The upcoming [ePrivacy Regulation](https://en.wikipedia.org/wiki/EPrivacy_Regulation)
-is expected to clarify and relax the rules around "non-privacy-intrusive
-cookies" and "cookies used by a website to count the number of visitors".
-Considering that, I believe that Ferrite Analytics also follows the spirit of
-the law.
+In other words: even if you don't store any cookies or unique identifiers, and
+you don't access any personal or even identifiable information, you are still in
+violation of the ePrivacy Directive if you don't ask for consent first. Because
+the tracking script or pixel might be cached and that's technically "information
+stored on the terminal equipment" which can't be done without asking for consent
+first.
 
-Finally, Ferrite Analytics collects the same or less information than Plausible
-Analytics. They claim that you don't need a banner with Plausible Analytics,
-which also supports my take on the ePrivacy/GDPR.
-
-**However**, do not take any of this as a guarantee. As the license text goes,
-Ferrite Analytics is provided "WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR
-IMPLIED". If you have any concerns or questions around GDPR and ePrivacy
-Directive, contact an expert. Ferrite Analytics can not and does not guarantee
-any sort of protection from these laws.
+This is a very extreme reading of the ePrivacy directive in my opinion, and one
+that relies on a technicality (i.e. if I configure `Cache-Control` headers so
+the tracking pixel is not cached, is it okay then?). I also think this is not
+what the spirit of the law had intended. Yet, I'm not a lawyer and I'd have to
+trust European Data Protection Board's view over my own.
 
 ## Usage
 
